@@ -98,8 +98,9 @@ const displayPopoularShows = async () => {
 const displayMovieDetails = async () => {
   const movieId = window.location.search.split("=")[1];
   console.log(movieId);
-
   const movie = await fetchApiData(`movie/${movieId}`);
+  //display background image in detail page
+  displayBackgroundImage("movie", movie.backdrop_path);
   console.log(movie.production_companies);
   const div = document.createElement("div");
   div.innerHTML = `
@@ -158,6 +159,28 @@ alt="Movie Title"
 </div>
   `;
   document.querySelector("#movie-details").appendChild(div);
+};
+
+//diplay overlay background image
+const displayBackgroundImage = (type, backroundPath) => {
+  const backgroundDiv = document.createElement("div");
+  backgroundDiv.style.backgroundImage = `url(https://image.tmdb.org/t/p/original/${backroundPath})`;
+  backgroundDiv.style.backgroundSize = "cover";
+  backgroundDiv.style.backgroundPosition = "center";
+  backgroundDiv.style.backgroundRepeat = "no-repeat";
+  backgroundDiv.style.height = "100vh";
+  backgroundDiv.style.width = "100vw";
+  backgroundDiv.style.position = "absolute";
+  backgroundDiv.style.top = "0";
+  backgroundDiv.style.left = "0";
+  backgroundDiv.style.zIndex = "-1";
+  backgroundDiv.style.opacity = "0.1";
+
+  if (type === "movie") {
+    document.querySelector("#movie-details").appendChild(backgroundDiv);
+  } else {
+    document.querySelector("#show-details").appendChild(backgroundDiv);
+  }
 };
 
 // add commas to number
