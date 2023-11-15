@@ -1,10 +1,23 @@
-const currentPage = window.location.pathname;
-console.log(currentPage);
+//set global state
+const global = {
+  currentPage: window.location.pathname,
+  search: {
+    term: "",
+    type: "",
+    page: 1,
+    totalPages: 1,
+  },
+  api: {
+    apiKey: "86104454e33bd2e857294e8a7e7b45db",
+    apiUrl: "https://api.tmdb.org/3/",
+  },
+};
+console.log(global.currentPage);
 
 //Fetch data from TMDB server
 const fetchApiData = async (endpoint) => {
-  const api_key = "86104454e33bd2e857294e8a7e7b45db";
-  const api_url = "https://api.tmdb.org/3/";
+  const api_key = global.api.apiKey;
+  const api_url = global.api.apiUrl;
 
   showSpinner();
 
@@ -289,6 +302,91 @@ alt="show name"
   document.querySelector("#show-details").appendChild(div);
 };
 
+//search movies/tv shows
+const search = async () => {
+  const searchString = window.location.search;
+  const urlParams = new URLSearchParams(searchString);
+
+  global.search.type = urlParams.get("type");
+  global.search.term = urlParams.get("search-term");
+  if (global.search.term !== "" && global.search.term !== null) {
+    // display search results
+    const { results, total_pages, page } = await searchApiData();
+    if (results.length === 0) {
+      showAlert("No results found");
+      return;
+    }
+    displaySearchResults(results);
+
+    //clear input fields
+    document.querySelector("#search-term").value = "";
+  } else {
+    showAlert("Please enter a term");
+  }
+};
+
+//display search results
+const displaySearchResults = (results) => {
+  results.forEach((result) => {
+    const div = document.createElement("div");
+    div.classList.add("card");
+    div.innerHTML = `
+    <a href="${global.search.type}-details.html?id=${result.id}">
+    ${
+      result.poster_path
+        ? `<img
+    src="https://image.tmdb.org/t/p/w500${result.poster_path}"
+    class="card-img-top"
+    alt="${global.search.type === "movie" ? result.title : result.name}"
+  />`
+        : `<img
+  src="images/no-image.jpg"
+  class="card-img-top"
+  alt="${global.search.type === "movie" ? result.title : result.name}"
+/>`
+    }
+  </a>
+  <div class="card-body">
+    <h5 class="card-title">${
+      global.search.type === "movie" ? result.title : result.name
+    }</h5>
+    <p class="card-text">
+      <small class="text-muted">Release: ${
+        global.search.type === "movie"
+          ? result.release_date
+          : result.first_air_date
+      }</small>
+    </p>
+  </div>`;
+    document.querySelector("#search-results").appendChild(div);
+  });
+};
+
+// display alert
+const showAlert = (message, className = "error") => {
+  const alertEl = document.createElement("div");
+  alertEl.classList.add("alert", className);
+  alertEl.appendChild(document.createTextNode(message));
+  document.querySelector("#alert").appendChild(alertEl);
+  setTimeout(() => alertEl.remove(), 3000);
+};
+
+//make request to search
+const searchApiData = async (endpoint) => {
+  const api_key = global.api.apiKey;
+  const api_url = global.api.apiUrl;
+
+  showSpinner();
+
+  const response = await fetch(
+    `${api_url}search/${global.search.type}?api_key=${api_key}&language=en-US&query=${global.search.term}`
+  );
+
+  const data = await response.json();
+  hideSpinner();
+  return data;
+};
+
 //diplay overlay background image
 const displayBackgroundImage = (type, backroundPath) => {
   const backgroundDiv = document.createElement("div");
@@ -319,14 +417,14 @@ const formNum = (number) => {
 const highlightActiveLinks = () => {
   const links = document.querySelectorAll(".nav-link");
   links.forEach((link) => {
-    if (link.getAttribute("href") === currentPage) {
+    if (link.getAttribute("href") === global.currentPage) {
       link.classList.add("active");
     }
   });
 };
 
 const init = () => {
-  switch (currentPage) {
+  switch (global.currentPage) {
     case "/":
     case "/index.html":
       displaySliders();
@@ -342,7 +440,7 @@ const init = () => {
       displayshowDetails();
       break;
     case "/search.html":
-      console.log("Search");
+      search();
       break;
   }
 
