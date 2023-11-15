@@ -26,6 +26,66 @@ const hideSpinner = () => {
   document.querySelector(".spinner").classList.remove("show");
 };
 
+//init swiper
+const initSwiper = () => {
+  const swiper = new Swiper(".swiper", {
+    slidesPerView: 1,
+    spaceBetween: 30,
+    freeMode: true,
+    loop: true,
+    autoplay: {
+      delay: 4000,
+      disableOnInteraction: false,
+    },
+    breakpoints: {
+      500: {
+        slidesPerView: 2,
+      },
+      700: {
+        slidesPerView: 3,
+      },
+      1200: {
+        slidesPerView: 4,
+      },
+    },
+  });
+};
+
+//display sliders
+const displaySliders = async () => {
+  const { results } = await fetchApiData("movie/now_playing");
+  console.log(results);
+  results.forEach((movie) => {
+    const div = document.createElement("div");
+    div.classList.add("swiper-slide");
+    div.innerHTML = `
+    
+    <a href="movie-details.html?id=${movie.id}">
+    ${
+      movie.poster_path
+        ? `<img
+    src="https://image.tmdb.org/t/p/w500${movie.poster_path}"
+    class="card-img-top"
+    alt="${movie.title}"
+  />`
+        : `<img
+  src="images/no-image.jpg"
+  class="card-img-top"
+  alt="Movie Title"
+/>`
+    }
+    </a>
+    <h4 class="swiper-rating">
+      <i class="fas fa-star text-secondary"></i> ${movie.vote_average} / 10
+    </h4>
+  
+    `;
+    document.querySelector(".swiper-wrapper").appendChild(div);
+
+    initSwiper();
+  });
+};
+
 //display popular movies
 const displayPopoularMovies = async () => {
   // use distructure to convert result from objects to arrays
@@ -269,6 +329,7 @@ const init = () => {
   switch (currentPage) {
     case "/":
     case "/index.html":
+      displaySliders();
       displayPopoularMovies();
       break;
     case "/shows.html":
